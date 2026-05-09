@@ -1,2 +1,18 @@
 <Solution>
+  <Project Path="AdminService/AdminService.csproj" />
+  <Project Path="ApiGateway/ApiGateway.csproj" />
+  <Project Path="AuthService/AuthService.csproj" />
+  <Project Path="BookingService/BookingService.csproj" />
+  <Project Path="ContractService/ContractService.csproj" />
+  <Project Path="FraudService/FraudService.csproj" />
+  <Project Path="MapService/MapService.csproj" />
+  <Project Path="MediaService/MediaService.csproj" />
+  <Project Path="MessagingService/MessagingService.csproj" />
+  <Project Path="NotificationService/NotificationService.csproj" />
+  <Project Path="PaymentService/PaymentService.csproj" />
+  <Project Path="ReviewService/ReviewService.csproj" />
+  <Project Path="SearchService/SearchService.csproj" />
+  <Project Path="ServiceProviderService/ServiceProviderService.csproj" />
+  <Project Path="UserService/UserService.csproj" />
+  <Project Path="VehicleService/VehicleService.csproj" />
 </Solution>
