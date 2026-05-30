@@ -1,4 +1,6 @@
+using AuthService.Application.Interfaces;
 using AuthService.Infrastructure.Data;
+using AuthService.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")
         ?? throw new InvalidOperationException("Connection string 'AuthDb' is not configured.")));
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 var app = builder.Build();
 
