@@ -1,8 +1,14 @@
+using AuthService.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")
+        ?? throw new InvalidOperationException("Connection string 'AuthDb' is not configured.")));
 
 var app = builder.Build();
 
