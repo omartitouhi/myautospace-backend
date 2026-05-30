@@ -6,7 +6,7 @@ using AuthService.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,26 +27,16 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Enter a valid JWT bearer token."
     });
 
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(openApiDocument => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        { new OpenApiSecuritySchemeReference("Bearer", openApiDocument), new List<string>() }
     });
 });
 builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")
         ?? throw new InvalidOperationException("Connection string 'AuthDb' is not configured.")));
 builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IAuthService, AuthService.Application.Services.AuthService>();
+builder.Services.AddScoped<IAuthService, global::AuthService.Application.Services.AuthService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
