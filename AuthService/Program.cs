@@ -12,6 +12,7 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AuthDb")
         ?? throw new InvalidOperationException("Connection string 'AuthDb' is not configured.")));
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAuthService, AuthService.Application.Services.AuthService>();
 
 var app = builder.Build();
 
