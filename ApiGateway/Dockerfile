@@ -6,7 +6,7 @@ RUN dotnet restore "ApiGateway/ApiGateway.csproj"
 
 COPY ["ApiGateway/", "ApiGateway/"]
 WORKDIR /src/ApiGateway
-RUN dotnet publish "ApiGateway.csproj" -c Release -o /app/publish --no-restore
+RUN dotnet publish "ApiGateway.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app

@@ -6,7 +6,7 @@ RUN dotnet restore "AuthService/AuthService.csproj"
 
 COPY ["AuthService/", "AuthService/"]
 WORKDIR /src/AuthService
-RUN dotnet publish "AuthService.csproj" -c Release -o /app/publish --no-restore
+RUN dotnet publish "AuthService.csproj" -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
