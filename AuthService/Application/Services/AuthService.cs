@@ -16,7 +16,7 @@ public class AuthService(
     {
         if (request.Role is null || !Enum.IsDefined(request.Role.Value))
         {
-            throw new InvalidOperationException("Invalid role. Allowed roles are: Buyer, Seller, ServiceProvider.");
+            throw new InvalidOperationException("Invalid role. Allowed roles are: Admin, Buyer, Seller, ServiceProvider.");
         }
 
         var email = NormalizeEmail(request.Email);
