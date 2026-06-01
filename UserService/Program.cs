@@ -1,8 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+using UserService.Infrastructure.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddDbContext<UserDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("UserDb")
+        ?? throw new InvalidOperationException("Connection string 'UserDb' is not configured.")));
 
 var app = builder.Build();
 

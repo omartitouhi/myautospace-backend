@@ -32,15 +32,15 @@ public class UserProfile
 
     public DateTime UpdatedAt { get; set; }
 
-    public ICollection<UserPack> UserPacks { get; set; } = new List<UserPack>();
+    public UserPack? UserPack { get; set; }
 
     public ICollection<IdentityVerification> IdentityVerifications { get; set; } = new List<IdentityVerification>();
 
     public ICollection<UserDocument> UserDocuments { get; set; } = new List<UserDocument>();
 
-    public ICollection<UserPreference> UserPreferences { get; set; } = new List<UserPreference>();
+    public UserPreference? UserPreference { get; set; }
 
     public ICollection<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
 
-    public ICollection<TrustScore> TrustScores { get; set; } = new List<TrustScore>();
+    public TrustScore? TrustScore { get; set; }
 }
