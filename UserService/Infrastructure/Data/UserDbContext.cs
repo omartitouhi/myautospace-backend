@@ -19,6 +19,10 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
 
     public DbSet<TrustScore> TrustScores { get; set; } = null!;
 
+    public DbSet<CompanyAccount> CompanyAccounts { get; set; } = null!;
+
+    public DbSet<CompanyMember> CompanyMembers { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -56,5 +60,14 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
             .HasOne(userProfile => userProfile.TrustScore)
             .WithOne(trustScore => trustScore.UserProfile)
             .HasForeignKey<TrustScore>(trustScore => trustScore.UserProfileId);
+
+        modelBuilder.Entity<CompanyAccount>()
+            .HasMany(companyAccount => companyAccount.Members)
+            .WithOne(companyMember => companyMember.CompanyAccount)
+            .HasForeignKey(companyMember => companyMember.CompanyAccountId);
+
+        modelBuilder.Entity<CompanyMember>()
+            .HasIndex(companyMember => new { companyMember.CompanyAccountId, companyMember.UserId })
+            .IsUnique();
     }
 }
