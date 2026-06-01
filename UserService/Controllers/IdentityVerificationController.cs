@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserService.Application.DTOs;
+using UserService.Application.Interfaces;
+using UserService.Application.Services;
 using UserService.Domain.Entities;
 using UserService.Domain.Enums;
 using UserService.Infrastructure.Data;
@@ -12,7 +14,7 @@ namespace UserService.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/users/verification")]
-public class IdentityVerificationController(UserDbContext dbContext) : ControllerBase
+public class IdentityVerificationController(UserDbContext dbContext, IUserActivityService userActivityService) : ControllerBase
 {
     [HttpPost("request")]
     public async Task<ActionResult<IdentityVerificationResponse>> RequestVerification()
@@ -50,6 +52,11 @@ public class IdentityVerificationController(UserDbContext dbContext) : Controlle
         };
 
         dbContext.IdentityVerifications.Add(verification);
+        userActivityService.Log(
+            userProfile,
+            UserActivityService.IdentityVerificationChanged,
+            "Identity verification was requested.");
+
         await dbContext.SaveChangesAsync();
 
         return Ok(ToResponse(verification));
@@ -94,6 +101,11 @@ public class IdentityVerificationController(UserDbContext dbContext) : Controlle
         verification.VerifiedAt = DateTime.UtcNow;
         verification.RejectionReason = null;
 
+        userActivityService.Log(
+            verification.UserProfile,
+            UserActivityService.IdentityVerificationChanged,
+            "Identity verification was approved.");
+
         await dbContext.SaveChangesAsync();
 
         return Ok(ToResponse(verification));
@@ -118,6 +130,11 @@ public class IdentityVerificationController(UserDbContext dbContext) : Controlle
         verification.VerifiedAt = null;
         verification.RejectionReason = request.RejectionReason;
 
+        userActivityService.Log(
+            verification.UserProfile,
+            UserActivityService.IdentityVerificationChanged,
+            "Identity verification was rejected.");
+
         await dbContext.SaveChangesAsync();
 
         return Ok(ToResponse(verification));
@@ -132,6 +149,7 @@ public class IdentityVerificationController(UserDbContext dbContext) : Controlle
     private async Task<IdentityVerification?> GetPendingVerificationAsync(Guid userProfileId)
     {
         return await dbContext.IdentityVerifications
+            .Include(verification => verification.UserProfile)
             .FirstOrDefaultAsync(verification =>
                 verification.UserProfileId == userProfileId
                 && verification.VerificationStatus == VerificationStatus.Pending);

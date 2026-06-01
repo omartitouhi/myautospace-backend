@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserService.Application.DTOs;
+using UserService.Application.Interfaces;
+using UserService.Application.Services;
 using UserService.Domain.Entities;
 using UserService.Infrastructure.Data;
 
@@ -11,7 +13,7 @@ namespace UserService.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/users")]
-public class ProfileController(UserDbContext dbContext) : ControllerBase
+public class ProfileController(UserDbContext dbContext, IUserActivityService userActivityService) : ControllerBase
 {
     [HttpGet("profile")]
     public async Task<ActionResult<UserProfileResponse>> GetProfile()
@@ -70,6 +72,11 @@ public class ProfileController(UserDbContext dbContext) : ControllerBase
         userProfile.ProfilePictureUrl = request.ProfilePictureUrl ?? userProfile.ProfilePictureUrl;
         userProfile.Bio = request.Bio ?? userProfile.Bio;
         userProfile.UpdatedAt = DateTime.UtcNow;
+
+        userActivityService.Log(
+            userProfile,
+            UserActivityService.ProfileUpdated,
+            "User profile was updated.");
 
         await dbContext.SaveChangesAsync();
 

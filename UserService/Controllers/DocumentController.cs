@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserService.Application.DTOs;
+using UserService.Application.Interfaces;
+using UserService.Application.Services;
 using UserService.Domain.Entities;
 using UserService.Domain.Enums;
 using UserService.Infrastructure.Data;
@@ -12,7 +14,7 @@ namespace UserService.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/users/documents")]
-public class DocumentController(UserDbContext dbContext) : ControllerBase
+public class DocumentController(UserDbContext dbContext, IUserActivityService userActivityService) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<UserDocumentResponse>> Create(CreateUserDocumentRequest request)
@@ -47,6 +49,11 @@ public class DocumentController(UserDbContext dbContext) : ControllerBase
         };
 
         dbContext.UserDocuments.Add(userDocument);
+        userActivityService.Log(
+            userProfile,
+            UserActivityService.DocumentUploaded,
+            $"Document uploaded: {request.DocumentType}.");
+
         await dbContext.SaveChangesAsync();
 
         return Ok(ToResponse(userDocument));

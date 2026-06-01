@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UserService.Application.DTOs;
+using UserService.Application.Interfaces;
+using UserService.Application.Services;
 using UserService.Domain.Entities;
 using UserService.Infrastructure.Data;
 
@@ -11,7 +13,7 @@ namespace UserService.Controllers;
 [ApiController]
 [Authorize]
 [Route("api/users/packs")]
-public class PackController(UserDbContext dbContext) : ControllerBase
+public class PackController(UserDbContext dbContext, IUserActivityService userActivityService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyCollection<UserPackResponse>>> GetPacks()
@@ -89,6 +91,11 @@ public class PackController(UserDbContext dbContext) : ControllerBase
         };
 
         dbContext.UserPacks.Add(userPack);
+        userActivityService.Log(
+            userProfile,
+            UserActivityService.PackChanged,
+            $"Subscribed to {request.PackType} pack.");
+
         await dbContext.SaveChangesAsync();
 
         return Ok(ToResponse(userPack));
@@ -121,6 +128,11 @@ public class PackController(UserDbContext dbContext) : ControllerBase
 
         currentPack.IsActive = false;
         currentPack.EndDate = now;
+
+        userActivityService.Log(
+            userProfile,
+            UserActivityService.PackChanged,
+            $"Canceled {currentPack.PackType} pack.");
 
         await dbContext.SaveChangesAsync();
 

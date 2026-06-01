@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using UserService.Domain.Enums;
+using UserService.Application.Interfaces;
+using UserService.Application.Services;
 using UserService.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +25,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("UserDb")
         ?? throw new InvalidOperationException("Connection string 'UserDb' is not configured.")));
+builder.Services.AddScoped<IUserActivityService, UserActivityService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
