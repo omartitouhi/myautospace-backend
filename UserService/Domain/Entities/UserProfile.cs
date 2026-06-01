@@ -32,6 +32,10 @@ public class UserProfile
 
     public DateTime UpdatedAt { get; set; }
 
+    public bool IsDeleted { get; set; }
+
+    public DateTime? DeletedAt { get; set; }
+
     public ICollection<UserPack> UserPacks { get; set; } = new List<UserPack>();
 
     public ICollection<IdentityVerification> IdentityVerifications { get; set; } = new List<IdentityVerification>();
@@ -41,6 +45,8 @@ public class UserProfile
     public UserPreference? UserPreference { get; set; }
 
     public ICollection<UserActivity> UserActivities { get; set; } = new List<UserActivity>();
+
+    public ICollection<GdprAuditLog> GdprAuditLogs { get; set; } = new List<GdprAuditLog>();
 
     public TrustScore? TrustScore { get; set; }
 }

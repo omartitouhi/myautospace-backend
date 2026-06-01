@@ -140,6 +140,8 @@ public class ProfileController(UserDbContext dbContext, IUserActivityService use
             userProfile.Status,
             userProfile.CreatedAt,
             userProfile.UpdatedAt,
+            userProfile.IsDeleted,
+            userProfile.DeletedAt,
             ToUserPackResponse(GetCurrentPack(userProfile.UserPacks)),
             userProfile.IdentityVerifications
                 .Select(identityVerification => new IdentityVerificationResponse(

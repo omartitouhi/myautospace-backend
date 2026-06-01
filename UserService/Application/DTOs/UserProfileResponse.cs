@@ -17,6 +17,8 @@ public record UserProfileResponse(
     UserStatus Status,
     DateTime CreatedAt,
     DateTime UpdatedAt,
+    bool IsDeleted,
+    DateTime? DeletedAt,
     UserPackResponse? UserPack,
     IReadOnlyCollection<IdentityVerificationResponse> IdentityVerifications,
     IReadOnlyCollection<UserDocumentResponse> UserDocuments,

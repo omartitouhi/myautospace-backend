@@ -23,6 +23,8 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
 
     public DbSet<CompanyMember> CompanyMembers { get; set; } = null!;
 
+    public DbSet<GdprAuditLog> GdprAuditLogs { get; set; } = null!;
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -69,5 +71,10 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
         modelBuilder.Entity<CompanyMember>()
             .HasIndex(companyMember => new { companyMember.CompanyAccountId, companyMember.UserId })
             .IsUnique();
+
+        modelBuilder.Entity<UserProfile>()
+            .HasMany(userProfile => userProfile.GdprAuditLogs)
+            .WithOne(gdprAuditLog => gdprAuditLog.UserProfile)
+            .HasForeignKey(gdprAuditLog => gdprAuditLog.UserProfileId);
     }
 }
