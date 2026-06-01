@@ -29,6 +29,11 @@
       "key": "password",
       "value": "Password123!",
       "type": "string"
+    },
+    {
+      "key": "role",
+      "value": "Buyer",
+      "type": "string"
     }
   ],
   "item": [
@@ -66,7 +71,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"firstName\": \"Ali\",\n  \"lastName\": \"Ben Salah\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+              "raw": "{\n  \"firstName\": \"Ali\",\n  \"lastName\": \"Ben Salah\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"role\": \"{{role}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",

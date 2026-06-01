@@ -12,10 +12,13 @@ public class AuthService(
     IJwtService jwtService,
     IConfiguration configuration) : IAuthService
 {
-    private const string DefaultRoleName = "Buyer";
-
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
     {
+        if (request.Role is null || !Enum.IsDefined(request.Role.Value))
+        {
+            throw new InvalidOperationException("Invalid role. Allowed roles are: Buyer, Seller, ServiceProvider.");
+        }
+
         var email = NormalizeEmail(request.Email);
         var emailExists = await dbContext.Users.AnyAsync(user => user.Email == email);
 
@@ -24,14 +27,15 @@ public class AuthService(
             throw new InvalidOperationException("Email is already registered.");
         }
 
-        var role = await dbContext.Roles.FirstOrDefaultAsync(role => role.Name == DefaultRoleName);
+        var requestedRoleName = request.Role.Value.ToString();
+        var role = await dbContext.Roles.FirstOrDefaultAsync(role => role.Name == requestedRoleName);
 
         if (role is null)
         {
             role = new Role
             {
                 Id = Guid.NewGuid(),
-                Name = DefaultRoleName
+                Name = requestedRoleName
             };
 
             dbContext.Roles.Add(role);
@@ -59,7 +63,7 @@ public class AuthService(
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
 
-        return await CreateAuthResponseAsync(user, new List<string> { DefaultRoleName });
+        return await CreateAuthResponseAsync(user, new List<string> { requestedRoleName });
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
