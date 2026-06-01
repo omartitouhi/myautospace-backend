@@ -26,6 +26,7 @@ builder.Services.AddDbContext<UserDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("UserDb")
         ?? throw new InvalidOperationException("Connection string 'UserDb' is not configured.")));
 builder.Services.AddScoped<IUserActivityService, UserActivityService>();
+builder.Services.AddScoped<ITrustScoreService, TrustScoreService>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
