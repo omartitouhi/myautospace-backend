@@ -32,7 +32,7 @@ public class UserProfile
 
     public DateTime UpdatedAt { get; set; }
 
-    public UserPack? UserPack { get; set; }
+    public ICollection<UserPack> UserPacks { get; set; } = new List<UserPack>();
 
     public ICollection<IdentityVerification> IdentityVerifications { get; set; } = new List<IdentityVerification>();
 

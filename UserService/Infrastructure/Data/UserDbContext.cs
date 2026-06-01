@@ -48,9 +48,9 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
             .HasForeignKey(userActivity => userActivity.UserProfileId);
 
         modelBuilder.Entity<UserProfile>()
-            .HasOne(userProfile => userProfile.UserPack)
+            .HasMany(userProfile => userProfile.UserPacks)
             .WithOne(userPack => userPack.UserProfile)
-            .HasForeignKey<UserPack>(userPack => userPack.UserProfileId);
+            .HasForeignKey(userPack => userPack.UserProfileId);
 
         modelBuilder.Entity<UserProfile>()
             .HasOne(userProfile => userProfile.TrustScore)

@@ -108,7 +108,7 @@ public class ProfileController(UserDbContext dbContext) : ControllerBase
     private IQueryable<UserProfile> GetCompleteProfileQuery()
     {
         return dbContext.UserProfiles
-            .Include(profile => profile.UserPack)
+            .Include(profile => profile.UserPacks)
             .Include(profile => profile.IdentityVerifications)
             .Include(profile => profile.UserDocuments)
             .Include(profile => profile.UserPreference)
@@ -133,14 +133,7 @@ public class ProfileController(UserDbContext dbContext) : ControllerBase
             userProfile.Status,
             userProfile.CreatedAt,
             userProfile.UpdatedAt,
-            userProfile.UserPack is null
-                ? null
-                : new UserPackResponse(
-                    userProfile.UserPack.Id,
-                    userProfile.UserPack.PackType,
-                    userProfile.UserPack.StartDate,
-                    userProfile.UserPack.EndDate,
-                    userProfile.UserPack.IsActive),
+            ToUserPackResponse(GetCurrentPack(userProfile.UserPacks)),
             userProfile.IdentityVerifications
                 .Select(identityVerification => new IdentityVerificationResponse(
                     identityVerification.Id,
@@ -178,5 +171,29 @@ public class ProfileController(UserDbContext dbContext) : ControllerBase
                     userProfile.TrustScore.Id,
                     userProfile.TrustScore.Score,
                     userProfile.TrustScore.LastCalculatedAt));
+    }
+
+    private static UserPack? GetCurrentPack(IEnumerable<UserPack> userPacks)
+    {
+        var now = DateTime.UtcNow;
+
+        return userPacks
+            .Where(userPack => userPack.IsActive
+                && userPack.StartDate <= now
+                && (userPack.EndDate is null || userPack.EndDate >= now))
+            .OrderByDescending(userPack => userPack.StartDate)
+            .FirstOrDefault();
+    }
+
+    private static UserPackResponse? ToUserPackResponse(UserPack? userPack)
+    {
+        return userPack is null
+            ? null
+            : new UserPackResponse(
+                userPack.Id,
+                userPack.PackType,
+                userPack.StartDate,
+                userPack.EndDate,
+                userPack.IsActive);
     }
 }
