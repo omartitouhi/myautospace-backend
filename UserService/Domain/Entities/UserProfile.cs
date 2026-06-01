@@ -1,3 +1,5 @@
+using UserService.Domain.Enums;
+
 namespace UserService.Domain.Entities;
 
 public class UserProfile
@@ -23,6 +25,8 @@ public class UserProfile
     public string? ProfilePictureUrl { get; set; }
 
     public string? Bio { get; set; }
+
+    public UserStatus Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

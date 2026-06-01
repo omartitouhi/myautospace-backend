@@ -1,3 +1,5 @@
+using UserService.Domain.Enums;
+
 namespace UserService.Domain.Entities;
 
 public class IdentityVerification
@@ -6,7 +8,7 @@ public class IdentityVerification
 
     public Guid UserProfileId { get; set; }
 
-    public string VerificationStatus { get; set; } = string.Empty;
+    public VerificationStatus VerificationStatus { get; set; }
 
     public DateTime? VerifiedAt { get; set; }
 

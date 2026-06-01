@@ -1,3 +1,5 @@
+using UserService.Domain.Enums;
+
 namespace UserService.Domain.Entities;
 
 public class UserPack
@@ -6,7 +8,7 @@ public class UserPack
 
     public Guid UserProfileId { get; set; }
 
-    public string PackType { get; set; } = string.Empty;
+    public PackType PackType { get; set; }
 
     public DateTime StartDate { get; set; }
 

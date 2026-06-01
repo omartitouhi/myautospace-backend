@@ -1,3 +1,5 @@
+using UserService.Domain.Enums;
+
 namespace UserService.Domain.Entities;
 
 public class UserDocument
@@ -6,13 +8,13 @@ public class UserDocument
 
     public Guid UserProfileId { get; set; }
 
-    public string DocumentType { get; set; } = string.Empty;
+    public DocumentType DocumentType { get; set; }
 
     public string FileUrl { get; set; } = string.Empty;
 
     public DateTime UploadedAt { get; set; }
 
-    public string Status { get; set; } = string.Empty;
+    public VerificationStatus Status { get; set; }
 
     public UserProfile UserProfile { get; set; } = null!;
 }
