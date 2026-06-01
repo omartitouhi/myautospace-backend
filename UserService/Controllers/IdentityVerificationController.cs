@@ -6,6 +6,7 @@ using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
 using UserService.Application.Services;
 using UserService.Domain.Entities;
+using UserService.Domain.Constants;
 using UserService.Domain.Enums;
 using UserService.Infrastructure.Data;
 
@@ -87,7 +88,7 @@ public class IdentityVerificationController(UserDbContext dbContext, IUserActivi
             : Ok(ToResponse(verification));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = UserPolicies.Admin)]
     [HttpPost("approve")]
     public async Task<ActionResult<IdentityVerificationResponse>> Approve(VerificationDecisionRequest request)
     {
@@ -111,7 +112,7 @@ public class IdentityVerificationController(UserDbContext dbContext, IUserActivi
         return Ok(ToResponse(verification));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = UserPolicies.Admin)]
     [HttpPost("reject")]
     public async Task<ActionResult<IdentityVerificationResponse>> Reject(VerificationDecisionRequest request)
     {
