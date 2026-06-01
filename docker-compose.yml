@@ -13,6 +13,20 @@ services:
     networks:
       - myautospace-network
 
+  postgres-user:
+    image: postgres:16
+    container_name: myautospace-postgres-user
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-user-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
   authservice:
     build:
       context: .
@@ -30,6 +44,23 @@ services:
     networks:
       - myautospace-network
 
+  userservice:
+    build:
+      context: .
+      dockerfile: UserService/Dockerfile
+    container_name: myautospace-userservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__UserDb: Host=postgres-user;Port=5432;Database=user_db;Username=postgres;Password=postgres
+    expose:
+      - "8080"
+    depends_on:
+      - postgres-user
+    networks:
+      - myautospace-network
+
   apigateway:
     build:
       context: .
@@ -39,10 +70,12 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ReverseProxy__Clusters__auth-cluster__Destinations__auth-service__Address: http://authservice:8080/
+      ReverseProxy__Clusters__users-cluster__Destinations__users-service__Address: http://userservice:8080/
     ports:
       - "5050:8080"
     depends_on:
       - authservice
+      - userservice
     networks:
       - myautospace-network
 
@@ -52,3 +85,4 @@ networks:
 
 volumes:
   postgres-auth-data:
+  postgres-user-data:
