@@ -1,6 +1,83 @@
 @VehicleService_HostAddress = http://localhost:5155
+@BearerToken = <your-jwt-token-here>
 
-GET {{VehicleService_HostAddress}}/weatherforecast/
+### Health check (anonymous)
+GET {{VehicleService_HostAddress}}/health
 Accept: application/json
+
+###
+
+### Create a vehicle (Seller role required)
+POST {{VehicleService_HostAddress}}/api/vehicles
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "make": "Toyota",
+  "model": "Corolla",
+  "year": 2022,
+  "vin": "1HGBH41JXMN109186",
+  "price": 15000.00,
+  "description": "Well maintained, single owner",
+  "mileage": 45000,
+  "fuelType": "Petrol",
+  "transmission": "Automatic",
+  "bodyType": "Sedan",
+  "listingType": "ForSale",
+  "color": "White",
+  "country": "Morocco",
+  "city": "Casablanca"
+}
+
+###
+
+### Get all active vehicles (any authenticated user)
+GET {{VehicleService_HostAddress}}/api/vehicles
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Get my vehicles (Seller role required)
+GET {{VehicleService_HostAddress}}/api/vehicles/my
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Get a vehicle by ID (any authenticated user)
+GET {{VehicleService_HostAddress}}/api/vehicles/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Update a vehicle (Seller role required)
+PUT {{VehicleService_HostAddress}}/api/vehicles/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "price": 13500.00,
+  "mileage": 48000,
+  "description": "Price reduced, still in great shape"
+}
+
+###
+
+### Update vehicle status (Seller role required)
+PATCH {{VehicleService_HostAddress}}/api/vehicles/00000000-0000-0000-0000-000000000000/status
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "status": "Active"
+}
+
+###
+
+### Delete a vehicle (Seller role required)
+DELETE {{VehicleService_HostAddress}}/api/vehicles/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{BearerToken}}
 
 ###

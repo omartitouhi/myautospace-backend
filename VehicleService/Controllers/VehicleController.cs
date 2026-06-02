@@ -34,6 +34,10 @@ public class VehicleController(IVehicleService vehicleService, ICurrentUserServi
         {
             return BadRequest(new { message = ex.Message });
         }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet]
@@ -101,6 +105,10 @@ public class VehicleController(IVehicleService vehicleService, ICurrentUserServi
             return Conflict(new { message = ex.Message });
         }
         catch (ArgumentOutOfRangeException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
         }

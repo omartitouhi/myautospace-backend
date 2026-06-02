@@ -14,6 +14,10 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
 
     public async Task<VehicleResponse> CreateAsync(CreateVehicleRequest request, Guid ownerAuthUserId)
     {
+        ValidateStringNotEmpty(request.Make, nameof(request.Make));
+        ValidateStringNotEmpty(request.Model, nameof(request.Model));
+        ValidateStringNotEmpty(request.Country, nameof(request.Country));
+        ValidateStringNotEmpty(request.City, nameof(request.City));
         ValidateYear(request.Year);
         ValidatePrice(request.Price);
         ValidateMileage(request.Mileage);
@@ -89,6 +93,13 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
     {
         var vehicle = await GetVehicleAndEnsureOwnershipAsync(id, ownerAuthUserId);
 
+        EnsureVehicleIsEditable(vehicle);
+
+        if (request.Make is not null) ValidateStringNotEmpty(request.Make, nameof(request.Make));
+        if (request.Model is not null) ValidateStringNotEmpty(request.Model, nameof(request.Model));
+        if (request.Country is not null) ValidateStringNotEmpty(request.Country, nameof(request.Country));
+        if (request.City is not null) ValidateStringNotEmpty(request.City, nameof(request.City));
+
         if (request.Year.HasValue)
         {
             ValidateYear(request.Year.Value);
@@ -145,6 +156,12 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
     public async Task DeleteAsync(Guid id, Guid ownerAuthUserId)
     {
         var vehicle = await GetVehicleAndEnsureOwnershipAsync(id, ownerAuthUserId);
+
+        if (vehicle.Status == VehicleStatus.Sold || vehicle.Status == VehicleStatus.Rented)
+        {
+            throw new InvalidOperationException(
+                $"Cannot delete a vehicle with status '{vehicle.Status}'. Change the status first.");
+        }
 
         vehicle.IsDeleted = true;
         vehicle.DeletedAt = DateTime.UtcNow;
@@ -206,6 +223,22 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
         if (mileage < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(mileage), "Mileage cannot be negative.");
+        }
+    }
+
+    private static void EnsureVehicleIsEditable(Vehicle vehicle)
+    {
+        if (vehicle.Status == VehicleStatus.Sold)
+        {
+            throw new InvalidOperationException("A sold vehicle cannot be edited. Change its status first.");
+        }
+    }
+
+    private static void ValidateStringNotEmpty(string value, string fieldName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException($"'{fieldName}' cannot be empty or whitespace.", fieldName);
         }
     }
 
