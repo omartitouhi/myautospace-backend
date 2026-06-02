@@ -1,34 +1,38 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 namespace BookingService.Domain.Entities;
 
 public class Booking
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    // External user identifier (sub claim from AuthService)
-    public string ExternalCustomerId { get; set; } = null!;
+    public Guid CustomerUserId { get; set; }
 
-    public Guid ProviderId { get; set; }
+    public Guid ProviderUserId { get; set; }
 
-    public DateTime StartUtc { get; set; }
+    public Guid? VehicleId { get; set; }
 
-    public DateTime EndUtc { get; set; }
+    public string ServiceType { get; set; } = null!;
 
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+    public DateTime ScheduledAt { get; set; }
 
-    public DateTime? UpdatedAtUtc { get; set; }
+    public int DurationMinutes { get; set; }
 
     public BookingService.Domain.Enums.BookingStatus Status { get; set; } = BookingService.Domain.Enums.BookingStatus.Pending;
 
-    public decimal? Price { get; set; }
+    public string? CancellationReason { get; set; }
 
-    public string? Metadata { get; set; }
+    public Guid? RescheduledFromBookingId { get; set; }
 
-    [Timestamp]
-    public byte[]? RowVersion { get; set; }
+    public string? CheckInCode { get; set; }
 
-    public string? QrCodeToken { get; set; }
+    public string? QrCodePayload { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation: one booking has many history entries
+    public List<BookingHistory> BookingHistory { get; set; } = new();
 }
-
-

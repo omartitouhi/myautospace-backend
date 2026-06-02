@@ -32,11 +32,11 @@ public class BookingRepository : IBookingRepository
         await _db.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Booking>> GetByCustomerAsync(string customerId, DateTime? from = null, DateTime? to = null)
+    public async Task<IEnumerable<Booking>> GetByCustomerAsync(Guid customerId, DateTime? from = null, DateTime? to = null)
     {
-        var query = _db.Bookings.AsQueryable().Where(b => b.ExternalCustomerId == customerId);
-        if (from.HasValue) query = query.Where(b => b.StartUtc >= from.Value);
-        if (to.HasValue) query = query.Where(b => b.StartUtc <= to.Value);
+        var query = _db.Bookings.AsQueryable().Where(b => b.CustomerUserId == customerId);
+        if (from.HasValue) query = query.Where(b => b.ScheduledAt >= from.Value);
+        if (to.HasValue) query = query.Where(b => b.ScheduledAt <= to.Value);
         return await query.ToListAsync();
     }
 }

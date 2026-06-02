@@ -14,37 +14,39 @@ public class BookingService
         _repository = repository;
     }
 
-    public async Task<BookingDto> CreateAsync(string externalCustomerId, Guid providerId, DateTime startUtc, DateTime endUtc, decimal? price = null, string? metadata = null)
+    public async Task<BookingDto> CreateAsync(Guid customerUserId, Guid providerUserId, Guid? vehicleId, string serviceType, DateTime scheduledAt, int durationMinutes)
     {
         var booking = new Booking
         {
-            ExternalCustomerId = externalCustomerId,
-            ProviderId = providerId,
-            StartUtc = startUtc,
-            EndUtc = endUtc,
-            Price = price,
-            Metadata = metadata,
+            CustomerUserId = customerUserId,
+            ProviderUserId = providerUserId,
+            VehicleId = vehicleId,
+            ServiceType = serviceType,
+            ScheduledAt = scheduledAt,
+            DurationMinutes = durationMinutes,
             Status = BookingStatus.Confirmed,
-            CreatedAtUtc = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
 
         var created = await _repository.AddAsync(booking);
 
-        return new BookingDto(created.Id, created.ExternalCustomerId, created.ProviderId, created.StartUtc, created.EndUtc, created.Status.ToString());
+        return new BookingDto(created.Id, created.CustomerUserId, created.ProviderUserId, created.VehicleId, created.ServiceType, created.ScheduledAt, created.DurationMinutes, created.Status.ToString());
     }
 
     public async Task<BookingDto?> GetByIdAsync(Guid id)
     {
         var booking = await _repository.GetByIdAsync(id);
         if (booking is null) return null;
-        return new BookingDto(booking.Id, booking.ExternalCustomerId, booking.ProviderId, booking.StartUtc, booking.EndUtc, booking.Status.ToString());
+        return new BookingDto(booking.Id, booking.CustomerUserId, booking.ProviderUserId, booking.VehicleId, booking.ServiceType, booking.ScheduledAt, booking.DurationMinutes, booking.Status.ToString());
     }
 
-    public async Task CancelAsync(Guid id)
+    public async Task CancelAsync(Guid id, string? reason = null)
     {
         var booking = await _repository.GetByIdAsync(id) ?? throw new InvalidOperationException("Booking not found");
         booking.Status = BookingStatus.Cancelled;
-        booking.UpdatedAtUtc = DateTime.UtcNow;
+        booking.CancellationReason = reason;
+        booking.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(booking);
     }
 }

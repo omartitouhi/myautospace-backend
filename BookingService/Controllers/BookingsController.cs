@@ -19,9 +19,22 @@ public class BookingsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateBookingRequest request)
     {
-        // externalCustomerId should usually come from token (sub)
-        var externalCustomerId = User?.Identity?.Name ?? request.ExternalCustomerId ?? throw new InvalidOperationException("Missing customer id");
-        var dto = await _service.CreateAsync(externalCustomerId, request.ProviderId, request.StartUtc, request.EndUtc, request.Price, request.Metadata);
+        // customerUserId should usually come from token (sub)
+        Guid customerUserId;
+        if (User?.Identity?.Name is string name && Guid.TryParse(name, out var parsed))
+        {
+            customerUserId = parsed;
+        }
+        else if (request.CustomerUserId.HasValue)
+        {
+            customerUserId = request.CustomerUserId.Value;
+        }
+        else
+        {
+            throw new InvalidOperationException("Missing customer id");
+        }
+
+        var dto = await _service.CreateAsync(customerUserId, request.ProviderUserId, request.VehicleId, request.ServiceType, request.ScheduledAt, request.DurationMinutes);
         return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
     }
 
@@ -34,21 +47,26 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("{id:guid}/cancel")]
-    public async Task<IActionResult> Cancel(Guid id)
+    public async Task<IActionResult> Cancel(Guid id, [FromBody] CancelRequest? request)
     {
-        await _service.CancelAsync(id);
+        await _service.CancelAsync(id, request?.Reason);
         return Ok();
     }
 }
 
 public class CreateBookingRequest
 {
-    public string? ExternalCustomerId { get; set; }
-    public Guid ProviderId { get; set; }
-    public DateTime StartUtc { get; set; }
-    public DateTime EndUtc { get; set; }
-    public decimal? Price { get; set; }
-    public string? Metadata { get; set; }
+    public Guid? CustomerUserId { get; set; }
+    public Guid ProviderUserId { get; set; }
+    public Guid? VehicleId { get; set; }
+    public string ServiceType { get; set; } = null!;
+    public DateTime ScheduledAt { get; set; }
+    public int DurationMinutes { get; set; }
+}
+
+public class CancelRequest
+{
+    public string? Reason { get; set; }
 }
 
 

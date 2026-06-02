@@ -2,10 +2,12 @@
 
 public record BookingDto(
     Guid Id,
-    string ExternalCustomerId,
-    Guid ProviderId,
-    DateTime StartUtc,
-    DateTime EndUtc,
+    Guid CustomerUserId,
+    Guid ProviderUserId,
+    Guid? VehicleId,
+    string ServiceType,
+    DateTime ScheduledAt,
+    int DurationMinutes,
     string Status
 );
 
