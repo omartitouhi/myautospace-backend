@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using System.Text.Json.Serialization;
 using AdminService.Application.Interfaces;
 using AdminService.Application.Services;
+using AdminService.Domain.Enums;
 using AdminService.Infrastructure.Data;
 using AdminService.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,7 +15,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<AlertSeverity>(allowIntegerValues: false));
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<AlertStatus>(allowIntegerValues: false));
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<ModerationStatus>(allowIntegerValues: false));
+    });
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpContextAccessor();
