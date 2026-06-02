@@ -14,8 +14,10 @@ Le workflow est defini dans :
 
 La pipeline se lance automatiquement dans les cas suivants :
 
+- `push` vers `master`
 - `push` vers `main`
 - `push` vers `develop`
+- `pull_request` vers `master`
 - `pull_request` vers `main`
 - `pull_request` vers `develop`
 
