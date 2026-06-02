@@ -1,0 +1,91 @@
+name: Backend CI
+
+# Run the backend checks on the main integration branches.
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  DOTNET_VERSION: 10.0.x
+  SOLUTION_FILE: myautospace-backend.sln
+
+jobs:
+  dotnet-build-and-test:
+    name: Restore, build and test .NET solution
+    runs-on: ubuntu-latest
+
+    steps:
+      # Fetch the repository content used by all following steps.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install the SDK required by the backend services.
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # Cache NuGet packages to speed up repeated CI runs.
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', '*.sln') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      # Restore every project referenced by the solution.
+      - name: Restore solution
+        run: dotnet restore "${{ env.SOLUTION_FILE }}"
+
+      # Build the complete backend solution in Release mode.
+      - name: Build solution
+        run: dotnet build "${{ env.SOLUTION_FILE }}" --configuration Release --no-restore
+
+      # Run unit tests only when test projects already exist.
+      - name: Run unit tests when present
+        shell: bash
+        run: |
+          mapfile -t test_projects < <(find . -type f \( -iname '*Tests.csproj' -o -iname '*Test.csproj' \))
+
+          if [ "${#test_projects[@]}" -eq 0 ]; then
+            echo "No test projects found. Skipping dotnet test."
+            exit 0
+          fi
+
+          for test_project in "${test_projects[@]}"; do
+            echo "Running tests for ${test_project}"
+            dotnet test "${test_project}" --configuration Release --no-restore --verbosity normal
+          done
+
+  docker-validation:
+    name: Validate Docker builds and compose file
+    runs-on: ubuntu-latest
+
+    steps:
+      # Fetch the repository content before Docker checks.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Validate docker-compose.yml without starting containers.
+      - name: Verify docker compose config
+        run: docker compose -f docker-compose.yml config
+
+      # Build the main backend service images locally without pushing them.
+      - name: Build main Docker images
+        shell: bash
+        run: |
+          docker build --file ApiGateway/Dockerfile --tag myautospace-apigateway:ci .
+          docker build --file AuthService/Dockerfile --tag myautospace-authservice:ci .
+
+          if [ -f UserService/Dockerfile ]; then
+            docker build --file UserService/Dockerfile --tag myautospace-userservice:ci .
+          else
+            echo "UserService Dockerfile not found. Skipping UserService image build."
+          fi
