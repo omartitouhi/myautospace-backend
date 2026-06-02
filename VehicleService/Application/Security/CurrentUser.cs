@@ -1,0 +1,6 @@
+namespace VehicleService.Application.Security;
+
+public record CurrentUser(
+    Guid UserId,
+    string Email,
+    IReadOnlyCollection<string> Roles);
