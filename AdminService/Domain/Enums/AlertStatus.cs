@@ -3,7 +3,7 @@ namespace AdminService.Domain.Enums;
 public enum AlertStatus
 {
     Open,
-    Acknowledged,
+    Investigating,
     Resolved,
-    Dismissed
+    Ignored
 }

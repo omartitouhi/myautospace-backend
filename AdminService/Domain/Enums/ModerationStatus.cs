@@ -6,6 +6,5 @@ public enum ModerationStatus
     InReview,
     Approved,
     Rejected,
-    Escalated,
     Resolved
 }
