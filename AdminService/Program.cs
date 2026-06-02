@@ -23,6 +23,7 @@ builder.Services.AddScoped<ICurrentAdminService, CurrentAdminService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 builder.Services.AddScoped<IContentServiceClient, ContentServiceClient>();
+builder.Services.AddScoped<IPaymentServiceClient, PaymentServiceClient>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
