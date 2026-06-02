@@ -21,6 +21,7 @@ builder.Services.AddDbContext<AdminDbContext>(options =>
         ?? throw new InvalidOperationException("Connection string 'AdminDb' is not configured.")));
 builder.Services.AddScoped<ICurrentAdminService, CurrentAdminService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 builder.Services.AddScoped<IContentServiceClient, ContentServiceClient>();
 builder.Services.AddScoped<IPaymentServiceClient, PaymentServiceClient>();
