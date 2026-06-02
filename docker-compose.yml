@@ -27,40 +27,6 @@ services:
     networks:
       - myautospace-network
 
-  authservice:
-    build:
-      context: .
-      dockerfile: AuthService/Dockerfile
-    container_name: myautospace-authservice
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      ApplyMigrations: "true"
-      ConnectionStrings__AuthDb: Host=postgres-auth;Port=5432;Database=auth_db;Username=postgres;Password=postgres
-    expose:
-      - "8080"
-    depends_on:
-      - postgres-auth
-    networks:
-      - myautospace-network
-
-  userservice:
-    build:
-      context: .
-      dockerfile: UserService/Dockerfile
-    container_name: myautospace-userservice
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-      ApplyMigrations: "true"
-      ConnectionStrings__UserDb: Host=postgres-user;Port=5432;Database=user_db;Username=postgres;Password=postgres
-    expose:
-      - "8080"
-    depends_on:
-      - postgres-user
-    networks:
-      - myautospace-network
-
   postgres-search:
     image: postgres:16
     container_name: myautospace-postgres-search
@@ -89,6 +55,119 @@ services:
     networks:
       - myautospace-network
 
+  postgres-vehicle:
+    image: postgres:16
+    container_name: myautospace-postgres-vehicle
+    environment:
+      POSTGRES_DB: vehicle_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres-vehicle-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
+  postgres-booking:
+    image: postgres:16
+    container_name: myautospace-postgres-booking
+    environment:
+      POSTGRES_DB: booking_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5438:5432"
+    volumes:
+      - postgres-booking-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
+  postgres-admin:
+    image: postgres:16
+    container_name: myautospace-postgres-admin
+    environment:
+      POSTGRES_DB: admin_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres-admin-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
+  authservice:
+    build:
+      context: .
+      dockerfile: AuthService/Dockerfile
+    container_name: myautospace-authservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__AuthDb: Host=postgres-auth;Port=5432;Database=auth_db;Username=postgres;Password=postgres
+    ports:
+      - "5003:8080"
+    depends_on:
+      - postgres-auth
+    networks:
+      - myautospace-network
+
+  userservice:
+    build:
+      context: .
+      dockerfile: UserService/Dockerfile
+    container_name: myautospace-userservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__UserDb: Host=postgres-user;Port=5432;Database=user_db;Username=postgres;Password=postgres
+    ports:
+      - "5076:8080"
+    depends_on:
+      - postgres-user
+    networks:
+      - myautospace-network
+
+  vehicleservice:
+    build:
+      context: .
+      dockerfile: VehicleService/Dockerfile
+    container_name: myautospace-vehicleservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__VehicleDb: Host=postgres-vehicle;Port=5432;Database=vehicle_db;Username=postgres;Password=postgres
+    ports:
+      - "5155:8080"
+    depends_on:
+      - postgres-vehicle
+    networks:
+      - myautospace-network
+
+  bookingservice:
+    build:
+      context: .
+      dockerfile: BookingService/Dockerfile
+    container_name: myautospace-bookingservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__BookingDb: Host=postgres-booking;Port=5432;Database=booking_db;Username=postgres;Password=postgres
+      Jwt__Key: dev-only-myautospace-authservice-signing-key-please-replace-outside-development
+      Jwt__Issuer: MyAutoSpace.AuthService
+      Jwt__Audience: MyAutoSpace.Clients
+    ports:
+      - "5110:8080"
+    depends_on:
+      - postgres-booking
+    networks:
+      - myautospace-network
+
   searchservice:
     build:
       context: .
@@ -99,8 +178,8 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ApplyMigrations: "true"
       ConnectionStrings__SearchDb: Host=postgres-search;Port=5432;Database=search_db;Username=postgres;Password=postgres
-    expose:
-      - "8080"
+    ports:
+      - "5069:8080"
     depends_on:
       - postgres-search
     networks:
@@ -116,10 +195,131 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ApplyMigrations: "true"
       ConnectionStrings__NotificationDb: Host=postgres-notification;Port=5432;Database=notification_db;Username=postgres;Password=postgres
-    expose:
-      - "8080"
+    ports:
+      - "5090:8080"
     depends_on:
       - postgres-notification
+    networks:
+      - myautospace-network
+
+  adminservice:
+    build:
+      context: .
+      dockerfile: AdminService/Dockerfile
+    container_name: myautospace-adminservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__AdminDb: Host=postgres-admin;Port=5432;Database=admin_db;Username=postgres;Password=postgres
+    ports:
+      - "5029:8080"
+    depends_on:
+      - postgres-admin
+    networks:
+      - myautospace-network
+
+  paymentservice:
+    build:
+      context: .
+      dockerfile: PaymentService/Dockerfile
+    container_name: myautospace-paymentservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5269:8080"
+    networks:
+      - myautospace-network
+
+  reviewservice:
+    build:
+      context: .
+      dockerfile: ReviewService/Dockerfile
+    container_name: myautospace-reviewservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5001:8080"
+    networks:
+      - myautospace-network
+
+  mediaservice:
+    build:
+      context: .
+      dockerfile: MediaService/Dockerfile
+    container_name: myautospace-mediaservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5055:8080"
+    networks:
+      - myautospace-network
+
+  contractservice:
+    build:
+      context: .
+      dockerfile: ContractService/Dockerfile
+    container_name: myautospace-contractservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5020:8080"
+    networks:
+      - myautospace-network
+
+  messagingservice:
+    build:
+      context: .
+      dockerfile: MessagingService/Dockerfile
+    container_name: myautospace-messagingservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5138:8080"
+    networks:
+      - myautospace-network
+
+  mapservice:
+    build:
+      context: .
+      dockerfile: MapService/Dockerfile
+    container_name: myautospace-mapservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5247:8080"
+    networks:
+      - myautospace-network
+
+  fraudservice:
+    build:
+      context: .
+      dockerfile: FraudService/Dockerfile
+    container_name: myautospace-fraudservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5105:8080"
+    networks:
+      - myautospace-network
+
+  serviceproviderservice:
+    build:
+      context: .
+      dockerfile: ServiceProviderService/Dockerfile
+    container_name: myautospace-serviceproviderservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+    ports:
+      - "5241:8080"
     networks:
       - myautospace-network
 
@@ -133,15 +333,37 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ReverseProxy__Clusters__auth-cluster__Destinations__auth-service__Address: http://authservice:8080/
       ReverseProxy__Clusters__users-cluster__Destinations__users-service__Address: http://userservice:8080/
-      ReverseProxy__Clusters__search-cluster__Destinations__search-service__Address: http://searchservice:8080/
+      ReverseProxy__Clusters__vehicles-cluster__Destinations__vehicles-service__Address: http://vehicleservice:8080/
+      ReverseProxy__Clusters__bookings-cluster__Destinations__bookings-service__Address: http://bookingservice:8080/
+      ReverseProxy__Clusters__payments-cluster__Destinations__payments-service__Address: http://paymentservice:8080/
       ReverseProxy__Clusters__notifications-cluster__Destinations__notifications-service__Address: http://notificationservice:8080/
+      ReverseProxy__Clusters__reviews-cluster__Destinations__reviews-service__Address: http://reviewservice:8080/
+      ReverseProxy__Clusters__search-cluster__Destinations__search-service__Address: http://searchservice:8080/
+      ReverseProxy__Clusters__media-cluster__Destinations__media-service__Address: http://mediaservice:8080/
+      ReverseProxy__Clusters__contracts-cluster__Destinations__contracts-service__Address: http://contractservice:8080/
+      ReverseProxy__Clusters__messages-cluster__Destinations__messages-service__Address: http://messagingservice:8080/
+      ReverseProxy__Clusters__maps-cluster__Destinations__maps-service__Address: http://mapservice:8080/
+      ReverseProxy__Clusters__fraud-cluster__Destinations__fraud-service__Address: http://fraudservice:8080/
+      ReverseProxy__Clusters__admin-cluster__Destinations__admin-service__Address: http://adminservice:8080/
+      ReverseProxy__Clusters__providers-cluster__Destinations__providers-service__Address: http://serviceproviderservice:8080/
     ports:
       - "5050:8080"
     depends_on:
       - authservice
       - userservice
-      - searchservice
+      - vehicleservice
+      - bookingservice
+      - paymentservice
       - notificationservice
+      - reviewservice
+      - searchservice
+      - mediaservice
+      - contractservice
+      - messagingservice
+      - mapservice
+      - fraudservice
+      - adminservice
+      - serviceproviderservice
     networks:
       - myautospace-network
 
@@ -154,3 +376,6 @@ volumes:
   postgres-user-data:
   postgres-search-data:
   postgres-notification-data:
+  postgres-vehicle-data:
+  postgres-booking-data:
+  postgres-admin-data:

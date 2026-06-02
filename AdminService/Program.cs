@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddHealthChecks();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AdminDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("AdminDb")
@@ -65,6 +66,11 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ApplyMigrations"))
+{
+    await InitializeDatabaseAsync(app);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -76,6 +82,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 
 var summaries = new[]
@@ -99,6 +106,40 @@ app.MapGet("/weatherforecast", () =>
 .RequireAuthorization();
 
 app.Run();
+
+static async Task InitializeDatabaseAsync(WebApplication app)
+{
+    const int maxAttempts = 10;
+
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<AdminDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<AdminDbContext>>();
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            var migrations = await dbContext.Database.GetPendingMigrationsAsync();
+            if (migrations.Any())
+            {
+                await dbContext.Database.MigrateAsync();
+            }
+            else
+            {
+                await dbContext.Database.EnsureCreatedAsync();
+            }
+
+            return;
+        }
+        catch (Exception exception) when (attempt < maxAttempts)
+        {
+            logger.LogWarning(exception, "Admin database initialization attempt {Attempt}/{MaxAttempts} failed. Retrying...", attempt, maxAttempts);
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    await dbContext.Database.EnsureCreatedAsync();
+}
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {

@@ -21,6 +21,7 @@ builder.Services.AddControllers()
             new JsonStringEnumConverter<UserRoleType>(allowIntegerValues: false));
     });
 builder.Services.AddOpenApi();
+builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -115,6 +116,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 
 var summaries = new[]

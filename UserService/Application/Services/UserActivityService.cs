@@ -11,6 +11,8 @@ public class UserActivityService(UserDbContext dbContext) : IUserActivityService
 
     public const string ProfileUpdated = "ProfileUpdated";
 
+    public const string ProfileCreated = "ProfileCreated";
+
     public const string DocumentUploaded = "DocumentUploaded";
 
     public const string PackChanged = "PackChanged";

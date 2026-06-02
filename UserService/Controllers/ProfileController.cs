@@ -2,10 +2,12 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using UserService.Application.DTOs;
 using UserService.Application.Interfaces;
 using UserService.Application.Services;
 using UserService.Domain.Entities;
+using UserService.Domain.Enums;
 using UserService.Infrastructure.Data;
 
 namespace UserService.Controllers;
@@ -29,8 +31,73 @@ public class ProfileController(UserDbContext dbContext, IUserActivityService use
             .FirstOrDefaultAsync(profile => profile.AuthUserId == authUserId);
 
         return userProfile is null
-            ? NotFound(new { message = "User profile was not found." })
+            ? NotFound(new { message = "User profile was not found. Please create your profile first." })
             : Ok(ToResponse(userProfile));
+    }
+
+    [HttpPost("profile")]
+    public async Task<ActionResult<UserProfileResponse>> CreateProfile(CreateUserProfileRequest request)
+    {
+        var authUserId = GetAuthUserId();
+        if (authUserId is null)
+        {
+            return Unauthorized(new { message = "User id claim is missing or invalid." });
+        }
+
+        var profileExists = await dbContext.UserProfiles
+            .AnyAsync(profile => profile.AuthUserId == authUserId);
+
+        if (profileExists)
+        {
+            return Conflict(new { message = "User profile already exists." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+        {
+            return BadRequest(new { message = "FirstName and LastName are required." });
+        }
+
+        var now = DateTime.UtcNow;
+        var userProfile = new UserProfile
+        {
+            Id = Guid.NewGuid(),
+            AuthUserId = authUserId.Value,
+            FirstName = request.FirstName.Trim(),
+            LastName = request.LastName.Trim(),
+            BirthDate = request.BirthDate ?? DateOnly.MinValue,
+            PhoneNumber = request.PhoneNumber ?? string.Empty,
+            Address = request.Address ?? string.Empty,
+            Country = request.Country ?? string.Empty,
+            City = request.City ?? string.Empty,
+            ProfilePictureUrl = request.ProfilePictureUrl,
+            Bio = request.Bio,
+            Status = UserStatus.Active,
+            CreatedAt = now,
+            UpdatedAt = now,
+            IsDeleted = false
+        };
+
+        dbContext.UserProfiles.Add(userProfile);
+        userActivityService.Log(
+            userProfile,
+            UserActivityService.ProfileCreated,
+            "User profile was created.");
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException exception)
+            when (exception.InnerException is PostgresException
+            {
+                SqlState: PostgresErrorCodes.UniqueViolation,
+                ConstraintName: "IX_UserProfiles_AuthUserId"
+            })
+        {
+            return Conflict(new { message = "User profile already exists." });
+        }
+
+        return CreatedAtAction(nameof(GetProfile), null, ToResponse(userProfile));
     }
 
     [HttpGet("{id:guid}")]

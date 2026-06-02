@@ -20,6 +20,8 @@ public class ConfigService(AdminDbContext dbContext) : IConfigService
 
     public async Task<SystemConfigResponse?> GetByKeyAsync(string key)
     {
+        key = key.Trim();
+
         var config = await dbContext.SystemConfigs
             .AsNoTracking()
             .FirstOrDefaultAsync(systemConfig => systemConfig.Key == key);
@@ -29,6 +31,8 @@ public class ConfigService(AdminDbContext dbContext) : IConfigService
 
     public async Task<SystemConfigResponse> UpsertAsync(string key, UpdateSystemConfigRequest request, Guid adminUserId)
     {
+        key = key.Trim();
+
         var config = await dbContext.SystemConfigs.FirstOrDefaultAsync(systemConfig => systemConfig.Key == key);
         var action = "UpdateSystemConfig";
 
@@ -43,8 +47,8 @@ public class ConfigService(AdminDbContext dbContext) : IConfigService
             dbContext.SystemConfigs.Add(config);
         }
 
-        config.Value = request.Value;
-        config.Description = request.Description;
+        config.Value = request.Value.Trim();
+        config.Description = request.Description?.Trim();
         config.IsSensitive = request.IsSensitive;
         config.UpdatedAt = DateTime.UtcNow;
 
@@ -56,6 +60,8 @@ public class ConfigService(AdminDbContext dbContext) : IConfigService
 
     public async Task<bool> DeleteAsync(string key, Guid adminUserId)
     {
+        key = key.Trim();
+
         var config = await dbContext.SystemConfigs.FirstOrDefaultAsync(systemConfig => systemConfig.Key == key);
         if (config is null)
         {

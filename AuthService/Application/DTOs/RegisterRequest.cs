@@ -8,4 +8,4 @@ public record RegisterRequest(
     string LastName,
     string Email,
     string Password,
-    [property: Required] UserRoleType? Role);
+    [Required] UserRoleType? Role);
