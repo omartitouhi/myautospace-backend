@@ -22,6 +22,7 @@ builder.Services.AddDbContext<AdminDbContext>(options =>
 builder.Services.AddScoped<ICurrentAdminService, CurrentAdminService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
+builder.Services.AddScoped<IContentServiceClient, ContentServiceClient>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
