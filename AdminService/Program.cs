@@ -3,6 +3,7 @@ using System.Text;
 using AdminService.Application.Interfaces;
 using AdminService.Application.Services;
 using AdminService.Infrastructure.Data;
+using AdminService.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ builder.Services.AddDbContext<AdminDbContext>(options =>
         ?? throw new InvalidOperationException("Connection string 'AdminDb' is not configured.")));
 builder.Services.AddScoped<ICurrentAdminService, CurrentAdminService>();
 builder.Services.AddScoped<IModerationService, ModerationService>();
+builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
