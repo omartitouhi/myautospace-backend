@@ -61,6 +61,68 @@ services:
     networks:
       - myautospace-network
 
+  postgres-search:
+    image: postgres:16
+    container_name: myautospace-postgres-search
+    environment:
+      POSTGRES_DB: search_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-search-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
+  postgres-notification:
+    image: postgres:16
+    container_name: myautospace-postgres-notification
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-notification-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
+  searchservice:
+    build:
+      context: .
+      dockerfile: SearchService/Dockerfile
+    container_name: myautospace-searchservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__SearchDb: Host=postgres-search;Port=5432;Database=search_db;Username=postgres;Password=postgres
+    expose:
+      - "8080"
+    depends_on:
+      - postgres-search
+    networks:
+      - myautospace-network
+
+  notificationservice:
+    build:
+      context: .
+      dockerfile: NotificationService/Dockerfile
+    container_name: myautospace-notificationservice
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__NotificationDb: Host=postgres-notification;Port=5432;Database=notification_db;Username=postgres;Password=postgres
+    expose:
+      - "8080"
+    depends_on:
+      - postgres-notification
+    networks:
+      - myautospace-network
+
   apigateway:
     build:
       context: .
@@ -71,11 +133,15 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ReverseProxy__Clusters__auth-cluster__Destinations__auth-service__Address: http://authservice:8080/
       ReverseProxy__Clusters__users-cluster__Destinations__users-service__Address: http://userservice:8080/
+      ReverseProxy__Clusters__search-cluster__Destinations__search-service__Address: http://searchservice:8080/
+      ReverseProxy__Clusters__notifications-cluster__Destinations__notifications-service__Address: http://notificationservice:8080/
     ports:
       - "5050:8080"
     depends_on:
       - authservice
       - userservice
+      - searchservice
+      - notificationservice
     networks:
       - myautospace-network
 
@@ -86,3 +152,5 @@ networks:
 volumes:
   postgres-auth-data:
   postgres-user-data:
+  postgres-search-data:
+  postgres-notification-data:
