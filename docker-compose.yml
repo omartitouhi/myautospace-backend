@@ -49,7 +49,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5436:5432"
+      - "5439:5432"
     volumes:
       - postgres-notification-data:/var/lib/postgresql/data
     networks:
@@ -91,7 +91,7 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5439:5432"
+      - "5436:5432"
     volumes:
       - postgres-admin-data:/var/lib/postgresql/data
     networks:
@@ -331,6 +331,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      Jwt__Key: dev-only-myautospace-authservice-signing-key-please-replace-outside-development
+      Jwt__Issuer: MyAutoSpace.AuthService
+      Jwt__Audience: MyAutoSpace.Clients
       ReverseProxy__Clusters__auth-cluster__Destinations__auth-service__Address: http://authservice:8080/
       ReverseProxy__Clusters__users-cluster__Destinations__users-service__Address: http://userservice:8080/
       ReverseProxy__Clusters__vehicles-cluster__Destinations__vehicles-service__Address: http://vehicleservice:8080/

@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="AdminService/AdminService.csproj" />
+  <Project Path="AdminService.Tests/AdminService.Tests.csproj" />
   <Project Path="ApiGateway/ApiGateway.csproj" />
   <Project Path="AuthService/AuthService.csproj" />
   <Project Path="BookingService/BookingService.csproj" />

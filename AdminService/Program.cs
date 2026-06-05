@@ -74,7 +74,7 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ApplyMigrations"))
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("DOTNET_RUNNING_IN_CONTAINER"))
 {
     await InitializeDatabaseAsync(app);
 }
@@ -93,26 +93,6 @@ app.UseAuthorization();
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast")
-.RequireAuthorization();
-
 app.Run();
 
 static async Task InitializeDatabaseAsync(WebApplication app)
@@ -127,16 +107,7 @@ static async Task InitializeDatabaseAsync(WebApplication app)
     {
         try
         {
-            var migrations = await dbContext.Database.GetPendingMigrationsAsync();
-            if (migrations.Any())
-            {
-                await dbContext.Database.MigrateAsync();
-            }
-            else
-            {
-                await dbContext.Database.EnsureCreatedAsync();
-            }
-
+            await dbContext.Database.MigrateAsync();
             return;
         }
         catch (Exception exception) when (attempt < maxAttempts)
@@ -146,10 +117,5 @@ static async Task InitializeDatabaseAsync(WebApplication app)
         }
     }
 
-    await dbContext.Database.EnsureCreatedAsync();
-}
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    await dbContext.Database.MigrateAsync();
 }
