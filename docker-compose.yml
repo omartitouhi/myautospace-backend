@@ -97,6 +97,20 @@ services:
     networks:
       - myautospace-network
 
+  postgres-provider:
+    image: postgres:16
+    container_name: myautospace-postgres-provider
+    environment:
+      POSTGRES_DB: provider_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres-provider-data:/var/lib/postgresql/data
+    networks:
+      - myautospace-network
+
   authservice:
     build:
       context: .
@@ -318,8 +332,15 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+      ApplyMigrations: "true"
+      ConnectionStrings__ProviderDb: Host=postgres-provider;Port=5432;Database=provider_db;Username=postgres;Password=postgres
+      Jwt__Key: dev-only-myautospace-authservice-signing-key-please-replace-outside-development
+      Jwt__Issuer: MyAutoSpace.AuthService
+      Jwt__Audience: MyAutoSpace.Clients
     ports:
       - "5241:8080"
+    depends_on:
+      - postgres-provider
     networks:
       - myautospace-network
 
@@ -382,3 +403,4 @@ volumes:
   postgres-vehicle-data:
   postgres-booking-data:
   postgres-admin-data:
+  postgres-provider-data:
