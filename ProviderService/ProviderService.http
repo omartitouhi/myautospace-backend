@@ -1,6 +1,150 @@
 @ProviderService_HostAddress = http://localhost:5241
+@BearerToken = <your-jwt-token-here>
 
-GET {{ProviderService_HostAddress}}/weatherforecast/
+### Health check (anonymous)
+GET {{ProviderService_HostAddress}}/health
 Accept: application/json
+
+###
+
+### ── Provider Profiles ────────────────────────────────────────────────────
+
+### Create provider profile (ServiceProvider role required)
+POST {{ProviderService_HostAddress}}/api/providers
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "businessName": "AutoCare Pro",
+  "description": "Professional car maintenance and repair services",
+  "phoneNumber": "+212600000001",
+  "address": "123 Rue Hassan II",
+  "city": "Casablanca",
+  "country": "Morocco"
+}
+
+###
+
+### Get all active providers (any authenticated user)
+GET {{ProviderService_HostAddress}}/api/providers
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Get my profile (ServiceProvider role required)
+GET {{ProviderService_HostAddress}}/api/providers/my
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Get provider by id (any authenticated user)
+GET {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Update provider profile (ServiceProvider role required)
+PUT {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "businessName": "AutoCare Pro Updated",
+  "city": "Rabat"
+}
+
+###
+
+### Delete provider profile (ServiceProvider role required)
+DELETE {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### ── Service Offerings ────────────────────────────────────────────────────
+
+### Add a service offering
+POST {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/services
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "name": "Oil Change",
+  "description": "Full synthetic oil change with filter replacement",
+  "price": 250.00,
+  "durationMinutes": 45,
+  "category": "Maintenance"
+}
+
+###
+
+### Update a service offering
+PUT {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/services/00000000-0000-0000-0000-000000000002
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "price": 275.00,
+  "isActive": true
+}
+
+###
+
+### Delete a service offering
+DELETE {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/services/00000000-0000-0000-0000-000000000002
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### ── Availability ─────────────────────────────────────────────────────────
+
+### Get availability for a provider (any authenticated user)
+GET {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/availability
+Authorization: Bearer {{BearerToken}}
+Accept: application/json
+
+###
+
+### Set availability slot (upsert by DayOfWeek)
+PUT {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/availability
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "dayOfWeek": 1,
+  "startTime": "08:00:00",
+  "endTime": "17:00:00",
+  "isAvailable": true
+}
+
+###
+
+### Delete an availability slot
+DELETE {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/availability/00000000-0000-0000-0000-000000000003
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### ── Gallery ───────────────────────────────────────────────────────────────
+
+### Add gallery image
+POST {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/gallery
+Authorization: Bearer {{BearerToken}}
+Content-Type: application/json
+
+{
+  "imageUrl": "https://storage.example.com/providers/shop-front.jpg",
+  "caption": "Our workshop front view",
+  "displayOrder": 0
+}
+
+###
+
+### Delete gallery image
+DELETE {{ProviderService_HostAddress}}/api/providers/00000000-0000-0000-0000-000000000001/gallery/00000000-0000-0000-0000-000000000004
+Authorization: Bearer {{BearerToken}}
 
 ###
