@@ -310,11 +310,11 @@ services:
     networks:
       - myautospace-network
 
-  serviceproviderservice:
+  providerservice:
     build:
       context: .
-      dockerfile: ServiceProviderService/Dockerfile
-    container_name: myautospace-serviceproviderservice
+      dockerfile: ProviderService/Dockerfile
+    container_name: myautospace-providerservice
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
@@ -348,7 +348,7 @@ services:
       ReverseProxy__Clusters__maps-cluster__Destinations__maps-service__Address: http://mapservice:8080/
       ReverseProxy__Clusters__fraud-cluster__Destinations__fraud-service__Address: http://fraudservice:8080/
       ReverseProxy__Clusters__admin-cluster__Destinations__admin-service__Address: http://adminservice:8080/
-      ReverseProxy__Clusters__providers-cluster__Destinations__providers-service__Address: http://serviceproviderservice:8080/
+      ReverseProxy__Clusters__providers-cluster__Destinations__providers-service__Address: http://providerservice:8080/
     ports:
       - "5050:8080"
     depends_on:
@@ -366,7 +366,7 @@ services:
       - mapservice
       - fraudservice
       - adminservice
-      - serviceproviderservice
+      - providerservice
     networks:
       - myautospace-network
 

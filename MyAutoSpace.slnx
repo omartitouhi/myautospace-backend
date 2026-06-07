@@ -13,7 +13,7 @@
   <Project Path="PaymentService/PaymentService.csproj" />
   <Project Path="ReviewService/ReviewService.csproj" />
   <Project Path="SearchService/SearchService.csproj" />
-  <Project Path="ServiceProviderService/ServiceProviderService.csproj" />
+  <Project Path="ProviderService/ProviderService.csproj" />
   <Project Path="UserService/UserService.csproj" />
   <Project Path="VehicleService/VehicleService.csproj" />
 </Solution>

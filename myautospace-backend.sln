@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReviewService", "ReviewServ
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SearchService", "SearchService\SearchService.csproj", "{BE6FE805-95E3-4D32-B8CD-B480827C1CE3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceProviderService", "ServiceProviderService\ServiceProviderService.csproj", "{6BE7999D-6440-4284-8BF7-E6C51EF1EE6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProviderService", "ProviderService\ProviderService.csproj", "{6BE7999D-6440-4284-8BF7-E6C51EF1EE6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UserService", "UserService\UserService.csproj", "{3C8F6374-6EC8-4B00-8942-1ECF3B8ADBBF}"
 EndProject
