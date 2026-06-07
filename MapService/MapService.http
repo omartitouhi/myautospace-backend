@@ -1,6 +1,68 @@
 @MapService_HostAddress = http://localhost:5247
+@BearerToken = YOUR_JWT_TOKEN_HERE
 
-GET {{MapService_HostAddress}}/weatherforecast/
-Accept: application/json
+### Health check
+GET {{MapService_HostAddress}}/health
+
+###
+
+### POST - Create a location
+POST {{MapService_HostAddress}}/api/maps/locations
+Content-Type: application/json
+Authorization: Bearer {{BearerToken}}
+
+{
+  "entityId": "00000000-0000-0000-0000-000000000001",
+  "entityType": "Vehicle",
+  "latitude": 48.8566,
+  "longitude": 2.3522,
+  "address": "1 Rue de Rivoli",
+  "city": "Paris",
+  "country": "France"
+}
+
+###
+
+### GET - Get location by id
+GET {{MapService_HostAddress}}/api/maps/locations/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### GET - Get location by entity
+GET {{MapService_HostAddress}}/api/maps/locations/entity/00000000-0000-0000-0000-000000000001?entityType=Vehicle
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### GET - Get my locations
+GET {{MapService_HostAddress}}/api/maps/locations/my
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### GET - Get nearby locations
+GET {{MapService_HostAddress}}/api/maps/locations/nearby?latitude=48.8566&longitude=2.3522&radiusKm=10&entityType=Vehicle&limit=20
+Authorization: Bearer {{BearerToken}}
+
+###
+
+### PUT - Update a location
+PUT {{MapService_HostAddress}}/api/maps/locations/00000000-0000-0000-0000-000000000001
+Content-Type: application/json
+Authorization: Bearer {{BearerToken}}
+
+{
+  "latitude": 48.8600,
+  "longitude": 2.3500,
+  "city": "Paris",
+  "isActive": true
+}
+
+###
+
+### DELETE - Delete a location
+DELETE {{MapService_HostAddress}}/api/maps/locations/00000000-0000-0000-0000-000000000001
+Authorization: Bearer {{BearerToken}}
 
 ###
