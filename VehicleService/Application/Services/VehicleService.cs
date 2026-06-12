@@ -7,7 +7,7 @@ using VehicleService.Infrastructure.Data;
 
 namespace VehicleService.Application.Services;
 
-public class VehicleService(VehicleDbContext dbContext) : IVehicleService
+public class VehicleService(VehicleDbContext dbContext, ISearchIndexClient searchIndexClient) : IVehicleService
 {
     private static readonly int MinYear = 1900;
     private static readonly int MaxYear = DateTime.UtcNow.Year + 1;
@@ -138,6 +138,13 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
 
         await dbContext.SaveChangesAsync();
 
+        // Only published vehicles are searchable; edits to drafts and
+        // unpublished listings stay out of the index.
+        if (vehicle.Status == VehicleStatus.Active)
+        {
+            await searchIndexClient.UpsertAsync(vehicle);
+        }
+
         return VehicleResponse.FromEntity(vehicle);
     }
 
@@ -151,6 +158,15 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
         vehicle.UpdatedAt = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync();
+
+        if (vehicle.Status == VehicleStatus.Active)
+        {
+            await searchIndexClient.UpsertAsync(vehicle);
+        }
+        else
+        {
+            await searchIndexClient.RemoveAsync(vehicle.Id);
+        }
     }
 
     public async Task DeleteAsync(Guid id, Guid ownerAuthUserId)
@@ -169,6 +185,8 @@ public class VehicleService(VehicleDbContext dbContext) : IVehicleService
         vehicle.UpdatedAt = DateTime.UtcNow;
 
         await dbContext.SaveChangesAsync();
+
+        await searchIndexClient.RemoveAsync(vehicle.Id);
     }
 
     // ── Private helpers ────────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ using VehicleService.Application.Services;
 using VehicleService.Domain.Constants;
 using VehicleService.Domain.Enums;
 using VehicleService.Infrastructure.Data;
+using VehicleService.Infrastructure.Search;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,15 @@ builder.Services.AddDbContext<VehicleDbContext>(options =>
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IVehicleService, VehicleService.Application.Services.VehicleService>();
+
+// SearchService index sync. Default targets the dev port from launchSettings;
+// docker compose overrides with SearchService__BaseUrl=http://searchservice:8080.
+builder.Services.AddHttpClient<ISearchIndexClient, SearchIndexClient>(client =>
+{
+    var baseUrl = builder.Configuration["SearchService:BaseUrl"] ?? "http://localhost:5069";
+    client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 
 var jwtSettings = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSettings["Key"]
@@ -105,9 +115,33 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ApplyMigrations"))
 {
+    await ApplyDatabaseMigrationsAsync(app);
+}
+
+// Retry while Postgres finishes starting (mirrors AuthService).
+static async Task ApplyDatabaseMigrationsAsync(WebApplication app)
+{
+    const int maxAttempts = 10;
+
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<VehicleDbContext>();
-    await db.Database.MigrateAsync();
+    var dbContext = scope.ServiceProvider.GetRequiredService<VehicleDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<VehicleDbContext>>();
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+            return;
+        }
+        catch (Exception exception) when (attempt < maxAttempts)
+        {
+            logger.LogWarning(exception, "Database migration attempt {Attempt}/{MaxAttempts} failed. Retrying...", attempt, maxAttempts);
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    await dbContext.Database.MigrateAsync();
 }
 
 if (app.Environment.IsDevelopment())

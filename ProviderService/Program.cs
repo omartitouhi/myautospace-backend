@@ -106,9 +106,33 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("ApplyMigrations"))
 {
+    await ApplyDatabaseMigrationsAsync(app);
+}
+
+// Retry while Postgres finishes starting (mirrors AuthService).
+static async Task ApplyDatabaseMigrationsAsync(WebApplication app)
+{
+    const int maxAttempts = 10;
+
     using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<ProviderDbContext>();
-    await db.Database.MigrateAsync();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ProviderDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<ProviderDbContext>>();
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            await dbContext.Database.MigrateAsync();
+            return;
+        }
+        catch (Exception exception) when (attempt < maxAttempts)
+        {
+            logger.LogWarning(exception, "Database migration attempt {Attempt}/{MaxAttempts} failed. Retrying...", attempt, maxAttempts);
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+    }
+
+    await dbContext.Database.MigrateAsync();
 }
 
 if (app.Environment.IsDevelopment())

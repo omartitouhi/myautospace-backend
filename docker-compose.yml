@@ -1,6 +1,12 @@
 services:
   postgres-auth:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-auth
     environment:
       POSTGRES_DB: auth_db
@@ -15,6 +21,12 @@ services:
 
   postgres-user:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-user
     environment:
       POSTGRES_DB: user_db
@@ -29,6 +41,12 @@ services:
 
   postgres-search:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-search
     environment:
       POSTGRES_DB: search_db
@@ -43,6 +61,12 @@ services:
 
   postgres-notification:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-notification
     environment:
       POSTGRES_DB: notification_db
@@ -57,6 +81,12 @@ services:
 
   postgres-vehicle:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-vehicle
     environment:
       POSTGRES_DB: vehicle_db
@@ -71,6 +101,12 @@ services:
 
   postgres-booking:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-booking
     environment:
       POSTGRES_DB: booking_db
@@ -85,6 +121,12 @@ services:
 
   postgres-admin:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-admin
     environment:
       POSTGRES_DB: admin_db
@@ -99,6 +141,12 @@ services:
 
   postgres-provider:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-provider
     environment:
       POSTGRES_DB: provider_db
@@ -113,6 +161,12 @@ services:
 
   postgres-map:
     image: postgres:16
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
     container_name: myautospace-postgres-map
     environment:
       POSTGRES_DB: map_db
@@ -138,7 +192,8 @@ services:
     ports:
       - "5003:8080"
     depends_on:
-      - postgres-auth
+      postgres-auth:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -155,7 +210,8 @@ services:
     ports:
       - "5076:8080"
     depends_on:
-      - postgres-user
+      postgres-user:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -169,10 +225,12 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ApplyMigrations: "true"
       ConnectionStrings__VehicleDb: Host=postgres-vehicle;Port=5432;Database=vehicle_db;Username=postgres;Password=postgres
+      SearchService__BaseUrl: http://searchservice:8080
     ports:
       - "5155:8080"
     depends_on:
-      - postgres-vehicle
+      postgres-vehicle:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -192,7 +250,8 @@ services:
     ports:
       - "5110:8080"
     depends_on:
-      - postgres-booking
+      postgres-booking:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -209,7 +268,8 @@ services:
     ports:
       - "5069:8080"
     depends_on:
-      - postgres-search
+      postgres-search:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -226,7 +286,8 @@ services:
     ports:
       - "5090:8080"
     depends_on:
-      - postgres-notification
+      postgres-notification:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -243,7 +304,8 @@ services:
     ports:
       - "5029:8080"
     depends_on:
-      - postgres-admin
+      postgres-admin:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -328,7 +390,8 @@ services:
     ports:
       - "5247:8080"
     depends_on:
-      - postgres-map
+      postgres-map:
+        condition: service_healthy
     networks:
       - myautospace-network
 
@@ -361,7 +424,8 @@ services:
     ports:
       - "5241:8080"
     depends_on:
-      - postgres-provider
+      postgres-provider:
+        condition: service_healthy
     networks:
       - myautospace-network
 
