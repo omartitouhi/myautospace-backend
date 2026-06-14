@@ -21,6 +21,14 @@ public class Booking
 
     public BookingService.Domain.Enums.BookingStatus Status { get; set; } = BookingService.Domain.Enums.BookingStatus.Pending;
 
+    public string? Note { get; set; }
+
+    // Denormalized vehicle info (resolved from VehicleService at creation) so a
+    // bookings list renders without a per-row vehicle fetch.
+    public string? VehicleTitle { get; set; }
+
+    public string? VehicleLocation { get; set; }
+
     public string? CancellationReason { get; set; }
 
     public Guid? RescheduledFromBookingId { get; set; }

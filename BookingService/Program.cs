@@ -1,29 +1,49 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using BookingService.Application.Services;
+using System.Text.Json.Serialization;
 using BookingService.Application.Interfaces;
+using BookingService.Application.Services;
+using BookingService.Domain.Constants;
+using BookingService.Domain.Enums;
 using BookingService.Infrastructure.Data;
 using BookingService.Infrastructure.Repositories;
+using BookingService.Infrastructure.Vehicles;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<BookingStatus>(allowIntegerValues: false));
+    });
+
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpContextAccessor();
 
 // DbContext - connection string name: BookingDb
 builder.Services.AddDbContext<BookingDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("BookingDb") ??
         throw new InvalidOperationException("Connection string 'BookingDb' is not configured.")));
 
-// DI for repository and application service
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<BookingService.Application.Services.BookingService>();
+
+// Cross-service vehicle lookup (resolve owner + denormalize). Dev default is
+// the VehicleService launchSettings port; docker overrides VehicleService:BaseUrl.
+builder.Services.AddHttpClient<IVehicleLookupClient, VehicleLookupClient>(client =>
+{
+    var baseUrl = builder.Configuration["VehicleService:BaseUrl"] ?? "http://localhost:5155";
+    client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
+    client.Timeout = TimeSpan.FromSeconds(5);
+});
 
 // JWT configuration (service expects Jwt config in appsettings)
 var jwtSettings = builder.Configuration.GetSection("Jwt");
@@ -48,7 +68,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .RequireRole(BookingRoles.Buyer, BookingRoles.Seller, BookingRoles.ServiceProvider, BookingRoles.Admin)
+        .Build();
+    options.FallbackPolicy = options.DefaultPolicy;
+
+    options.AddPolicy(BookingPolicies.AuthenticatedUser, policy =>
+        policy.RequireAuthenticatedUser()
+            .RequireRole(BookingRoles.Buyer, BookingRoles.Seller, BookingRoles.ServiceProvider, BookingRoles.Admin));
+
+    options.AddPolicy(BookingPolicies.Admin, policy =>
+        policy.RequireAuthenticatedUser()
+            .RequireRole(BookingRoles.Admin));
+});
 
 var app = builder.Build();
 
@@ -91,4 +126,3 @@ app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 
 app.Run();
-

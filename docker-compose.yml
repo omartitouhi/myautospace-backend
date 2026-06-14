@@ -244,6 +244,7 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ApplyMigrations: "true"
       ConnectionStrings__BookingDb: Host=postgres-booking;Port=5432;Database=booking_db;Username=postgres;Password=postgres
+      VehicleService__BaseUrl: http://vehicleservice:8080
       Jwt__Key: dev-only-myautospace-authservice-signing-key-please-replace-outside-development
       Jwt__Issuer: MyAutoSpace.AuthService
       Jwt__Audience: MyAutoSpace.Clients

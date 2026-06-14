@@ -1,72 +1,117 @@
-﻿using BookingService.Application.DTOs;
+using BookingService.Application.DTOs;
+using BookingService.Application.Interfaces;
+using BookingService.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookingService.Controllers;
 
 [ApiController]
+[Authorize(Policy = BookingPolicies.AuthenticatedUser)]
 [Route("api/bookings")]
-[Authorize]
-public class BookingsController : ControllerBase
+public class BookingsController(
+    Application.Services.BookingService bookingService,
+    ICurrentUserService currentUserService) : ControllerBase
 {
-    private readonly BookingService.Application.Services.BookingService _service;
-
-    public BookingsController(BookingService.Application.Services.BookingService service)
+    /// <summary>Buyer requests a booking (test drive / rental) for a vehicle.</summary>
+    [HttpPost]
+    public async Task<ActionResult<BookingResponse>> Create(CreateBookingRequest request, CancellationToken cancellationToken)
     {
-        _service = service;
+        var user = currentUserService.GetCurrentUser();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User identity is missing or invalid." });
+        }
+
+        try
+        {
+            var response = await bookingService.CreateAsync(user, request, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = response.Id }, response);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateBookingRequest request)
+    /// <summary>Bookings the current user made (as buyer).</summary>
+    [HttpGet("my")]
+    public async Task<ActionResult<IReadOnlyCollection<BookingResponse>>> GetMy()
     {
-        // customerUserId should usually come from token (sub)
-        Guid customerUserId;
-        if (User?.Identity?.Name is string name && Guid.TryParse(name, out var parsed))
+        var user = currentUserService.GetCurrentUser();
+        if (user is null)
         {
-            customerUserId = parsed;
-        }
-        else if (request.CustomerUserId.HasValue)
-        {
-            customerUserId = request.CustomerUserId.Value;
-        }
-        else
-        {
-            throw new InvalidOperationException("Missing customer id");
+            return Unauthorized(new { message = "User identity is missing or invalid." });
         }
 
-        var dto = await _service.CreateAsync(customerUserId, request.ProviderUserId, request.VehicleId, request.ServiceType, request.ScheduledAt, request.DurationMinutes);
-        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
+        return Ok(await bookingService.GetMyAsync(user.UserId));
+    }
+
+    /// <summary>Booking requests for vehicles the current user owns (as seller).</summary>
+    [HttpGet("incoming")]
+    public async Task<ActionResult<IReadOnlyCollection<BookingResponse>>> GetIncoming()
+    {
+        var user = currentUserService.GetCurrentUser();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User identity is missing or invalid." });
+        }
+
+        return Ok(await bookingService.GetIncomingAsync(user.UserId));
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<ActionResult<BookingResponse>> GetById(Guid id)
     {
-        var dto = await _service.GetByIdAsync(id);
-        if (dto is null) return NotFound();
-        return Ok(dto);
+        var user = currentUserService.GetCurrentUser();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User identity is missing or invalid." });
+        }
+
+        try
+        {
+            return Ok(await bookingService.GetByIdAsync(id, user.UserId));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
     }
 
-    [HttpPost("{id:guid}/cancel")]
-    public async Task<IActionResult> Cancel(Guid id, [FromBody] CancelRequest? request)
+    /// <summary>Confirm / complete / cancel a booking (role-checked).</summary>
+    [HttpPatch("{id:guid}/status")]
+    public async Task<ActionResult<BookingResponse>> UpdateStatus(Guid id, UpdateBookingStatusRequest request)
     {
-        await _service.CancelAsync(id, request?.Reason);
-        return Ok();
+        var user = currentUserService.GetCurrentUser();
+        if (user is null)
+        {
+            return Unauthorized(new { message = "User identity is missing or invalid." });
+        }
+
+        try
+        {
+            return Ok(await bookingService.UpdateStatusAsync(id, request, user));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Forbid();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }
-
-public class CreateBookingRequest
-{
-    public Guid? CustomerUserId { get; set; }
-    public Guid ProviderUserId { get; set; }
-    public Guid? VehicleId { get; set; }
-    public string ServiceType { get; set; } = null!;
-    public DateTime ScheduledAt { get; set; }
-    public int DurationMinutes { get; set; }
-}
-
-public class CancelRequest
-{
-    public string? Reason { get; set; }
-}
-
-
